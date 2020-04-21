@@ -1,6 +1,7 @@
 import UIKit
+import SafariServices
 
-class ViewController: UIViewController,UISearchBarDelegate,UITableViewDataSource {
+class ViewController: UIViewController, UISearchBarDelegate, UITableViewDataSource, UITableViewDelegate, SFSafariViewControllerDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -9,6 +10,8 @@ class ViewController: UIViewController,UISearchBarDelegate,UITableViewDataSource
         searchText.placeholder = "お菓子の名前を入力して下さい"
         // Table ViewのdataSourceを設定
         tableView.dataSource = self
+        // Table Viewのdelegateを設定
+        tableView.delegate = self
     }
 
     @IBOutlet weak var searchText: UISearchBar!
@@ -21,12 +24,10 @@ class ViewController: UIViewController,UISearchBarDelegate,UITableViewDataSource
         
         //キーボードを閉じる
         view.endEditing(true)
-        
+    
         if let searchWord = searchBar.text {
-            
             // デバックエリアに出力
             print(searchWord)
-            
             // 入力されていたら、お菓子を検索
             searchOkashi(keyword: searchWord)
         }
@@ -39,14 +40,12 @@ class ViewController: UIViewController,UISearchBarDelegate,UITableViewDataSource
         let maker: String?
         let price: String?
         let comment: String?
-        
         let url: URL?
         let image: URL?
     }
     
     //Jsonのデータ構造
     struct ResultJson: Codable {
-        
         // 複数要素
         let item:[ItemJson]?
     }
@@ -124,8 +123,8 @@ class ViewController: UIViewController,UISearchBarDelegate,UITableViewDataSource
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         // 表示を行うCellオブジェクトを取得
         let cell = tableView.dequeueReusableCell(withIdentifier: "okashiCell", for: indexPath)
-        // お菓子のタイトル設定
-        cell.textLabel?.text = okashiList[indexPath.row].name
+        // お菓子のタイトル設定(prefix: 表示文字数制限)
+        cell.textLabel?.text = okashiList[indexPath.row].name.prefix(16) + " / " +   okashiList[indexPath.row].price + "円"
         // お菓子画像を取得
         if let imageData = try? Data(contentsOf: okashiList[indexPath.row].image) {
             // 正常に取得できた場合はUIImageで画像オブジェクトを生成して、Cellにお菓子画像を設定
@@ -134,6 +133,28 @@ class ViewController: UIViewController,UISearchBarDelegate,UITableViewDataSource
         
         // 設定済みのCellオブジェクトを画面に反映
         return cell
+    }
+    
+    // Cellが選択された際に呼び出されるdelegateメソッド
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
+        // ハイライト解除
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        // SFSafariViewを開く
+        let safariViewController = SFSafariViewController(url: okashiList[indexPath.row].link)
+        
+        // delegateの通知先を自分自身
+        safariViewController.delegate = self
+        
+        // SafariViewが開かれる
+        present(safariViewController, animated: true, completion: nil)
+    }
+    
+    // SafariViewが閉じられた時に呼ばれるdelegateメソッド
+    func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+        
+        // SafariViewを閉じる
+        dismiss(animated: true, completion: nil)
     }
 }
