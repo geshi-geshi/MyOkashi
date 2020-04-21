@@ -1,11 +1,3 @@
-//
-//  SceneDelegate.swift
-//  MyOkashi
-//
-//  Created by TK on 2020/04/21.
-//  Copyright © 2020 竹内茂訓. All rights reserved.
-//
-
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
